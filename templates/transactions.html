@@ -1,9 +1,15 @@
 {% extends "layout.html" %}
 {% block content %}
+
+<!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1>All Transactions</h1>
+
+    <!--Add Transaction Button -->
     <a href="{{ url_for('add_transaction') }}" class="btn btn-primary">Add Transaction</a>
 </div>
+
+<!-- Transactions Table -->
 <div class="table-responsive">
     <table class="table">
         <thead>

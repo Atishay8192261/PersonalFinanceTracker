@@ -4,6 +4,9 @@ from models import db
 from routes import init_routes
 
 def create_app():
+
+    """Initialize the Flask application."""
+    
     app = Flask(__name__)
     app.config.from_object(Config)
 

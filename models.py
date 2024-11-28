@@ -1,12 +1,12 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import scoped_session, sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
 from datetime import datetime
 
 db = SQLAlchemy()
-Base = declarative_base()
 
 class Transaction(db.Model):
+
+    """Model for transactions like income, expenses, and goal allocations."""
+
     __tablename__ = 'transactions'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -20,6 +20,9 @@ class Transaction(db.Model):
         return f"<Transaction {self.id} {self.date} {self.category} {self.amount} {self.type}>"
 
 class Budget(db.Model):
+
+    """Model for the user's budget goal."""
+
     __tablename__ = 'budget'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -29,6 +32,9 @@ class Budget(db.Model):
         return f"<Budget {self.amount}>"
 
 class Goal(db.Model):
+
+    """Model for financial goals."""
+
     __tablename__ = 'goals'
 
     id = db.Column(db.Integer, primary_key=True)
@@ -38,26 +44,30 @@ class Goal(db.Model):
     deadline = db.Column(db.Date, nullable=False)
 
     def allocate_funds(self, amount):
-        """Allocate funds to the goal and deduct from Total Holdings."""
+
+        """Allocate funds to the goal and deduct from holdings."""
+
         if amount > 0:
             self.current_amount += amount
             transaction = Transaction(
                 date=datetime.now(),
                 category=f"Goal Allocation: {self.name}",
-                amount=-amount,  # Deduct from holdings
-                type="goal"  # Mark as a goal-related transaction
+                amount=-amount, #deducts from holdings
+                type="goal"  #marked as a goal transaction
             )
             db.session.add(transaction)
             db.session.commit()
 
     def refund_allocation(self):
-        """Refund allocated funds back to Total Holdings."""
+
+        """Refund allocated funds back to holdings before deletion."""
+
         if self.current_amount > 0:
             transaction = Transaction(
                 date=datetime.now(),
                 category=f"Goal Refund: {self.name}",
                 amount=self.current_amount,
-                type="goal"  # Mark as a goal-related transaction
+                type="goal"  #marked as a goal transaction
             )
             db.session.add(transaction)
             self.current_amount = 0

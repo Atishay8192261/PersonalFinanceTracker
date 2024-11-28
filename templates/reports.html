@@ -1,12 +1,18 @@
 {% extends "layout.html" %}
 {% block content %}
+
 <h1>Monthly Spending Report</h1>
 {% if graph_json %}
+
+    <!-- Bar Chart Container -->
     <div id="bar-chart"></div>
+
+    <!-- Rendering the bar chart using Plotly -->
     <script>
         var graphJSON = {{ graph_json | safe }};
         Plotly.newPlot('bar-chart', graphJSON.data, graphJSON.layout);
     </script>
+
 {% else %}
     <p>No data available for report generation.</p>
 {% endif %}
