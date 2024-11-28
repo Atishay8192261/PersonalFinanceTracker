@@ -50,3 +50,21 @@ def get_bar_chart_data(df):
         return None
 
 
+def calculate_total_holdings():
+    try:
+        total_income = db.session.query(
+            db.func.sum(Transaction.amount)
+        ).filter(Transaction.type == 'income').scalar() or 0
+
+        total_expense = db.session.query(
+            db.func.sum(Transaction.amount)
+        ).filter(Transaction.type == 'expense').scalar() or 0
+
+        goal_allocations = db.session.query(
+            db.func.sum(Transaction.amount)
+        ).filter(Transaction.type == 'goal').scalar() or 0
+
+        return total_income - (total_expense + abs(goal_allocations))
+    except Exception as e:
+        print(f"Error calculating total holdings: {e}")
+        return 0
