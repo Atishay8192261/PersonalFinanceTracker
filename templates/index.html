@@ -25,10 +25,11 @@
             </div>
             <div class="col-md-4">
                 <div class="stats-card h-100">
-                    <div class="stats-label mb-3">Total Income This Month</div>
-                    <div class="stats-value mb-3">${{ "%.2f"|format(total_income) }}</div>
+                    <div class="stats-label">Total Savings This Month</div>
+                    <div class="stats-value mb-3">${{ "%.2f"|format(total_savings) }}</div>
+
                     <div class="text-muted">
-                        {{ ((total_income / budget_goal) * 100)|round|int }}% of budget goal
+                        {{ ((total_savings / budget_goal) * 100)|round|int }}% of budget goal
                     </div>
                 </div>
             </div>

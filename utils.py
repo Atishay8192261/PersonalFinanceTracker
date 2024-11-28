@@ -44,6 +44,8 @@ def get_line_chart_data():
 
 def get_bar_chart_data(df):
     try:
+        # Exclude goal-related transactions for visualizations
+        df = df[df['type'].isin(['income', 'expense'])]
         fig = px.bar(df, x='category', y='amount', color='type', title='Income and Expenses by Category')
         return json.dumps(fig, cls=plotly.utils.PlotlyJSONEncoder)
     except Exception as e:

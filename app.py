@@ -1,6 +1,6 @@
 from flask import Flask
 from config import Config
-from models import db, Budget
+from models import db
 from routes import init_routes
 
 def create_app():
@@ -10,11 +10,6 @@ def create_app():
     db.init_app(app)
     with app.app_context():
         db.create_all()
-        # Initialize budget if not exists
-        if not Budget.query.first():
-            initial_budget = Budget(amount=2000)
-            db.session.add(initial_budget)
-            db.session.commit()
 
     init_routes(app)
 

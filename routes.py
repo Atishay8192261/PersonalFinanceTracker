@@ -8,23 +8,36 @@ import calendar
 
 def init_routes(app):
     @app.route('/')
+    @app.route('/')
     def index():
         current_date = date.today()
         first_day_of_month = date(current_date.year, current_date.month, 1)
         last_day_of_month = date(current_date.year, current_date.month, calendar.monthrange(current_date.year, current_date.month)[1])
 
         transactions = Transaction.query.order_by(Transaction.date.desc()).limit(10).all()
-        total_spent = sum(t.amount for t in Transaction.query.filter(Transaction.type == 'expense', Transaction.date >= first_day_of_month, Transaction.date <= last_day_of_month).all())
-        total_income = sum(t.amount for t in Transaction.query.filter(Transaction.type == 'income', Transaction.date >= first_day_of_month, Transaction.date <= last_day_of_month).all())
-        total_holdings = calculate_total_holdings()
 
+        # Calculate Total Savings (current month income - current month expenses)
+        total_income = sum(t.amount for t in Transaction.query.filter(
+            Transaction.type == 'income',
+            Transaction.date >= first_day_of_month,
+            Transaction.date <= last_day_of_month
+        ).all())
+        total_expense = sum(t.amount for t in Transaction.query.filter(
+            Transaction.type == 'expense',
+            Transaction.date >= first_day_of_month,
+            Transaction.date <= last_day_of_month
+        ).all())
+        total_savings = total_income - total_expense
+
+        total_holdings = calculate_total_holdings()  # Holdings remain unchanged
         budget = Budget.query.first()
-        budget_goal = budget.amount if budget else 1000  # setting a default bu\dget to 1000
+        budget_goal = budget.amount if budget else 1000  # Default budget goal
 
         line_chart_json = get_line_chart_data()
-        return render_template('index.html', transactions=transactions, total_spent=total_spent, 
-                            total_income=total_income, total_holdings=total_holdings,
+        return render_template('index.html', transactions=transactions, total_spent=total_expense,
+                            total_savings=total_savings, total_holdings=total_holdings,
                             budget_goal=budget_goal, line_chart_json=line_chart_json)
+
 
     @app.route('/transactions')
     def transactions():
@@ -46,6 +59,13 @@ def init_routes(app):
                         type=request.form['type']
                     )
                     db.session.add(transaction)
+
+                    if transaction.type == 'expense' and transaction_date.month == current_date.month:
+                        # Adjust savings for current month expenses
+                        budget = Budget.query.first()
+                        if budget:
+                            budget.amount -= transaction.amount
+
                     db.session.commit()
                     flash('Transaction added successfully!', 'success')
                 else:
@@ -54,6 +74,7 @@ def init_routes(app):
                 flash(f"Error adding transaction: {str(e)}", 'danger')
             return redirect(url_for('transactions'))
         return render_template('add_transaction.html', expense_categories=EXPENSE_CATEGORIES, income_categories=INCOME_CATEGORIES)
+
 
     @app.route('/get_categories/<transaction_type>')
     def get_categories(transaction_type):
@@ -66,7 +87,8 @@ def init_routes(app):
 
     @app.route('/reports')
     def reports():
-        transactions = Transaction.query.all()
+        # Only include income and expense transactions
+        transactions = Transaction.query.filter(Transaction.type.in_(['income', 'expense'])).all()
         df = pd.DataFrame([{
             'category': t.category,
             'amount': t.amount,
@@ -80,6 +102,7 @@ def init_routes(app):
             graph_json = None
 
         return render_template('reports.html', graph_json=graph_json)
+
 
     @app.route('/update_budget', methods=['POST'])
     def update_budget():
